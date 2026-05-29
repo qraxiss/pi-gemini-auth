@@ -1,0 +1,75 @@
+{
+  "name": "@qraxiss/pi-gemini-auth",
+  "version": "0.5.0",
+  "description": "Pi extension package for Gemini OAuth compatibility",
+  "author": {
+    "name": "Fatih Güman"
+  },
+  "packageManager": "pnpm@11.1.1",
+  "type": "module",
+  "imports": {
+    "#src/*": "./src/*",
+    "#test/*": "./test/*"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pi",
+    "pi-package",
+    "gemini",
+    "oauth"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qraxiss/pi-gemini-auth.git"
+  },
+  "homepage": "https://github.com/qraxiss/pi-gemini-auth#readme",
+  "bugs": {
+    "url": "https://github.com/qraxiss/pi-gemini-auth/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "lint:md": "rumdl check *.md",
+    "lint": "biome check . && eslint . && pnpm run lint:md",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "format": "biome format . --write"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "dependencies": {
+    "@google/genai": "1.52.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "@earendil-works/pi-ai": "0.75.5",
+    "@earendil-works/pi-coding-agent": "0.75.5",
+    "@eslint/js": "^10.0.1",
+    "@google/genai": "1.52.0",
+    "@types/node": "^22.15.3",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
+    "rumdl": "^0.1.93",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4",
+    "vitest": "^4.1.5"
+  }
+}
