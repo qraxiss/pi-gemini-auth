@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2](https://github.com/qraxiss/pi-gemini-auth/compare/v0.5.1...v0.5.2) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* bump version to 0.5.1 ([3fa07ac](https://github.com/qraxiss/pi-gemini-auth/commit/3fa07ac080594744a39c736a72885388fb0c1314))
+
 ## [0.5.1] - 2026-05-29
 
 ### Fixed
