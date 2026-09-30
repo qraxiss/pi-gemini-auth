@@ -91,6 +91,7 @@ import type {
   ThinkingBudgets,
   ThinkingContent,
   ThinkingLevel,
+  Tool,
   ToolCall,
 } from "@earendil-works/pi-ai";
 import {
@@ -262,11 +263,11 @@ export function extractRetryDelay(
 }
 
 function isGemini3ProModel(modelId: string): boolean {
-  return /gemini-3(?:\.1)?-pro/.test(modelId.toLowerCase());
+  return /gemini-3(?:\.\d+)?-pro/.test(modelId.toLowerCase());
 }
 
 function isGemini3FlashModel(modelId: string): boolean {
-  return /gemini-3(?:\.1)?-flash/.test(modelId.toLowerCase());
+  return /gemini-3(?:\.\d+)?-flash/.test(modelId.toLowerCase());
 }
 
 function isGemini3Model(modelId: string): boolean {
@@ -998,6 +999,49 @@ export const streamSimpleGoogleGeminiCli = (
   } as GoogleGeminiCliOptions);
 };
 
+function extractSystemPrompt(context: Context): string | undefined {
+  if (context.systemPrompt) return context.systemPrompt;
+  if (!context.messages) return undefined;
+  const parts: string[] = [];
+  for (const msg of context.messages as unknown as Array<
+    Record<string, unknown>
+  >) {
+    if (msg.role === "system") {
+      const text =
+        typeof msg.content === "string"
+          ? msg.content
+          : Array.isArray(msg.content)
+            ? msg.content
+                .filter((c: any) => c?.type === "text")
+                .map((c: any) => c?.text)
+                .filter(Boolean)
+                .join("\n")
+            : undefined;
+      if (text) parts.push(text);
+    }
+  }
+  return parts.length > 0 ? parts.join("\n\n") : undefined;
+}
+
+function extractTools(context: Context): Tool[] | undefined {
+  if (context.tools && context.tools.length > 0) return context.tools;
+  if (!context.messages) return undefined;
+  const tools = new Map<string, Tool>();
+  for (const msg of context.messages as unknown as Array<
+    Record<string, unknown>
+  >) {
+    if (msg.role === "system") {
+      for (const t of (msg.toolsRemoved as
+        | Array<{ name: string }>
+        | undefined) ?? [])
+        tools.delete(t.name);
+      for (const t of (msg.toolsAdded as Tool[] | undefined) ?? [])
+        tools.set(t.name, t);
+    }
+  }
+  return tools.size > 0 ? [...tools.values()] : undefined;
+}
+
 export function buildRequest(
   model: Model<Api>,
   context: Context,
@@ -1040,9 +1084,10 @@ export function buildRequest(
   request.sessionId = options.sessionId;
 
   // System instruction must be object with parts, not plain string
-  if (context.systemPrompt) {
+  const systemPrompt = extractSystemPrompt(context);
+  if (systemPrompt) {
     request.systemInstruction = {
-      parts: [{ text: sanitizeSurrogates(context.systemPrompt) }],
+      parts: [{ text: sanitizeSurrogates(systemPrompt) }],
     };
   }
 
@@ -1050,10 +1095,12 @@ export function buildRequest(
     request.generationConfig = generationConfig;
   }
 
-  if (context.tools && context.tools.length > 0) {
+  const tools = extractTools(context);
+
+  if (tools && tools.length > 0) {
     // Claude models on Cloud Code Assist need the legacy `parameters` field
     const useParameters = model.id.startsWith("claude-");
-    request.tools = convertTools(context.tools, useParameters);
+    request.tools = convertTools(tools as any, useParameters);
     if (options.toolChoice) {
       request.toolConfig = {
         functionCallingConfig: {
